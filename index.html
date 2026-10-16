@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دنیای بازی</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101426;color:white;font-family:Tahoma,Arial;padding-bottom:75px}
+header{background:#202b49;padding:16px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:20px;margin:0}
+.coins{background:#35466d;padding:10px;border-radius:12px;color:#ffe16b}
+main{max-width:650px;margin:auto;padding:14px}
+.panel{background:#202b49;border:1px solid #35466d;border-radius:18px;padding:16px;margin-bottom:14px}
+h2{color:#8ee7ff}
+button{background:#7067ff;color:white;border:0;border-radius:12px;padding:12px;font-size:15px;margin:4px;cursor:pointer}
+.secondary{background:#35466d}
+.hidden{display:none}
+.board{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin:14px 0}
+.cell{aspect-ratio:1;background:#35466d;border-radius:4px;display:flex;justify-content:center;align-items:center;font-size:clamp(9px,2.5vw,14px)}
+.player{background:#ffe16b;color:#222;font-weight:bold}
+input{width:100%;padding:12px;margin:8px 0 14px;border-radius:10px;background:#101426;color:white;border:1px solid #53658c}
+.message{padding:12px;margin-top:10px;border-radius:10px}
+.error{background:#682b3b}
+.success{background:#19583e}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#202b49;padding:8px}
+nav button{flex:1;background:transparent;margin:0}
+nav .active{background:#35466d;color:#8ee7ff}
+.small{font-size:13px;color:#bdc9e5;line-height:1.8}
+</style>
+</head>
+<body>
+<header>
+<h1>🎮 دنیای بازی</h1>
+<div class="coins">🪙 <span id="coins">1000</span></div>
+</header>
+<main>
+<section id="home">
+<div class="panel">
+<h2>🎲 بازی مار و پله</h2>
+<p>تاس بنداز و به خانه ۱۰۰ برس!</p>
+<p>موقعیت مهره: <b id="position">1</b></p>
+<div id="board" class="board"></div>
+<button onclick="rollDice()">🎲 انداختن تاس</button>
+<button class="secondary" onclick="resetGame()">شروع دوباره</button>
+<p id="result" class="small">برای شروع تاس بنداز.</p>
+</div>
+</section>
+<section id="shop" class="hidden">
+<div class="panel">
+<h2>🛒 فروشگاه</h2>
+<h3>💎 ۲۰۰ تا جم</h3>
+<p>قیمت: ۵۰۰ سکه 🪙</p>
+<button onclick="buyGems()">خرید جم</button>
+<div id="shopMessage"></div>
+<p>جم‌های من: <b id="gems">0</b></p>
+</div>
+</section>
+<section id="profile" class="hidden">
+<div class="panel">
+<h2>👤 پروفایل</h2>
+<label>شماره تلفن</label>
+<input id="phone" placeholder="اختیاری">
+<label>آیدی روبیکا</label>
+<input id="rubika" placeholder="اختیاری">
+<button onclick="showProfile()">نمایش اطلاعات</button>
+<p id="profileResult" class="small"></p>
+<p class="small">این نسخه آزمایشی است. رمز واقعی یا اطلاعات خصوصی را وارد نکن.</p>
+</div>
+</section>
+</main>
+<nav>
+<button onclick="tab('shop')" id="nshop">🛒 فروشگاه</button>
+<button onclick="tab('home')" id="nhome" class="active">🏠 خانه</button>
+<button onclick="tab('profile')" id="nprofile">👤 پروفایل</button>
+</nav>
+<script>
+let coins=1000,gems=0,pos=1,finished=false;
+const ladders={3:22,8:30,20:41,28:55,50:67,71:90};
+const snakes={17:7,32:12,48:26,64:44,88:59,97:78};
+
+function tab(id){
+["home","shop","profile"].forEach(x=>{
+document.getElementById(x).classList.toggle("hidden",x!==id);
+document.getElementById("n"+x).classList.toggle("active",x===id);
+});
+}
+function draw(){
+const b=document.getElementById("board");b.innerHTML="";
+for(let r=9;r>=0;r--){
+let a=Array.from({length:10},(_,i)=>r*10+i+1);
+if(r%2)a.reverse();
+a.forEach(n=>{
+let d=document.createElement("div");
+d.className="cell"+(n===pos?" player":"");
+d.textContent=n===pos?"🙂":ladders[n]?"🪜":snakes[n]?"🐍":n;
+b.appendChild(d);
+});
+}
+document.getElementById("position").textContent=pos;
+}
+function rollDice(){
+if(finished)return;
+let d=Math.floor(Math.random()*6)+1;
+let m="عدد تاس: "+d;
+if(pos+d>100)m+="؛ عدد دقیق لازم است.";
+else{
+pos+=d;
+if(ladders[pos]){pos=ladders[pos];m+="؛ از نردبان بالا رفتی!";}
+else if(snakes[pos]){pos=snakes[pos];m+="؛ مار تو را پایین برد!";}
+if(pos===100){finished=true;m+="؛ برنده شدی! 🎉";}
+}
+document.getElementById("result").textContent=m;
+draw();
+}
+function resetGame(){
+pos=1;finished=false;
+document.getElementById("result").textContent="بازی از نو شروع شد.";
+draw();
+}
+function buyGems(){
+let m=document.getElementById("shopMessage");
+if(coins<500){
+m.className="message error";
+m.textContent="❌ شما سکه کافی ندارین تا خریداری کنین!";
+return;
+}
+coins-=500;gems+=200;
+document.getElementById("coins").textContent=coins;
+document.getElementById("gems").textContent=gems;
+m.className="message success";
+m.textContent="✅ ۲۰۰ جم خریداری شد!";
+}
+function showProfile(){
+let p=document.getElementById("phone").value.trim();
+let r=document.getElementById("rubika").value.trim();
+document.getElementById("profileResult").textContent=
+"شماره: "+(p||"وارد نشده")+" | آیدی روبیکا: "+(r||"وارد نشده");
+}
+draw();
+</script>
+</body>
+</html>
